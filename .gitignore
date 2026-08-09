@@ -1,0 +1,30 @@
+# ===== 敏感文件（切勿上传） =====
+# 网易云账号 Cookie，含真实登录凭证
+cookie.txt
+cookie.1.txt
+*.cookie
+
+# ===== 运行时数据 =====
+downloads/
+music_api.log
+*.log
+
+# ===== Python 缓存/虚拟环境 =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ===== 项目本地数据 =====
+.workbuddy/
+
+# ===== IDE / 系统 =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ===== 环境变量 =====
+.env

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网易云音乐工具箱</title>
+    <link href="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/aplayer/1.10.1/APlayer.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- ======== 顶部 Hero ======== -->
+    <header class="hero">
+        <div class="hero-content">
+            <span class="hero-icon">🎵</span>
+            <h1>网易云音乐工具箱</h1>
+            <p class="hero-sub">搜索 · 解析 · 下载，一站搞定。下载文件自动写入歌词、封面与完整元数据。</p>
+            <span class="hero-badge">无损 · Hi-Res · 杜比全景声</span>
+        </div>
+    </header>
+
+    <!-- ======== 主内容 ======== -->
+    <main class="page-wrap">
+
+        <!-- 主操作卡片 -->
+        <div class="main-card" id="main-form">
+            <!-- 模式切换 Tabs -->
+            <nav class="mode-tabs" aria-label="功能切换">
+                <button type="button" class="mode-tab" data-mode="search">🔍 歌曲搜索</button>
+                <button type="button" class="mode-tab" data-mode="parse">🎧 单曲解析</button>
+                <button type="button" class="mode-tab" data-mode="playlist">📋 歌单解析</button>
+                <button type="button" class="mode-tab" data-mode="album">💿 专辑解析</button>
+                <button type="button" class="mode-tab" data-mode="download">⬇️ 音乐下载</button>
+            </nav>
+
+            <!-- 歌曲搜索 -->
+            <div id="search-area">
+                <div class="field-group">
+                    <label class="form-label" for="search_keywords">搜索关键词</label>
+                    <input type="text" id="search_keywords" class="nm-input" placeholder="输入歌曲名 / 歌手名进行搜索">
+                </div>
+                <div class="field-group">
+                    <label class="form-label" for="search_limit">返回数量</label>
+                    <input type="number" id="search_limit" class="nm-input" value="10" min="1" max="50">
+                </div>
+                <button type="button" id="search-btn" class="btn-nm btn-block">搜索</button>
+            </div>
+
+            <!-- 单曲解析 -->
+            <div id="parse-area" class="hidden">
+                <div class="field-group">
+                    <label class="form-label" for="song_ids">歌曲 ID 或链接</label>
+                    <input type="text" id="song_ids" class="nm-input" placeholder="如 185668 或 https://music.163.com/song?id=185668">
+                </div>
+                <div class="field-group">
+                    <label class="form-label" for="level">音质选择</label>
+                    <select id="level" class="nm-select">
+                        <option value="standard">标准音质</option>
+                        <option value="exhigh">极高音质</option>
+                        <option value="lossless" selected>无损音质</option>
+                        <option value="hires">Hi-Res 音质</option>
+                        <option value="sky">沉浸环绕声</option>
+                        <option value="jyeffect">高清环绕声</option>
+                        <option value="jymaster">超清母带</option>
+                        <option value="dolby">杜比全景声</option>
+                    </select>
+                </div>
+                <button type="button" id="parse-btn" class="btn-nm btn-block">解析</button>
+            </div>
+
+            <!-- 歌单解析 -->
+            <div id="playlist-area" class="hidden">
+                <div class="field-group">
+                    <label class="form-label" for="playlist_id">歌单 ID 或链接</label>
+                    <input type="text" id="playlist_id" class="nm-input" placeholder="如 123456 或 https://music.163.com/playlist?id=123456">
+                </div>
+                <button type="button" id="playlist-btn" class="btn-nm btn-block">解析歌单</button>
+            </div>
+
+            <!-- 专辑解析 -->
+            <div id="album-area" class="hidden">
+                <div class="field-group">
+                    <label class="form-label" for="album_id">专辑 ID 或链接</label>
+                    <input type="text" id="album_id" class="nm-input" placeholder="如 123456 或 https://music.163.com/album?id=123456">
+                </div>
+                <button type="button" id="album-btn" class="btn-nm btn-block">解析专辑</button>
+            </div>
+
+            <!-- 音乐下载 -->
+            <div id="download-area" class="hidden">
+                <div class="field-group">
+                    <label class="form-label" for="download_id">音乐 ID 或链接</label>
+                    <input type="text" id="download_id" class="nm-input" placeholder="如 185668 或 https://music.163.com/song?id=185668">
+                </div>
+                <div class="field-group">
+                    <label class="form-label" for="download_quality">下载音质</label>
+                    <select id="download_quality" class="nm-select">
+                        <option value="standard">标准音质</option>
+                        <option value="exhigh">极高音质</option>
+                        <option value="lossless" selected>无损音质</option>
+                        <option value="hires">Hi-Res 音质</option>
+                        <option value="sky">沉浸环绕声</option>
+                        <option value="jyeffect">高清环绕声</option>
+                        <option value="jymaster">超清母带</option>
+                        <option value="dolby">杜比全景声</option>
+                    </select>
+                </div>
+                <button type="button" id="download-btn" class="btn-nm btn-block">下载音乐</button>
+                <div id="download-progress" class="progress-wrap hidden">
+                    <div class="progress-bar-custom"></div>
+                    <div class="progress-text">正在下载并写入歌词/封面等元信息...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 搜索结果 -->
+        <section id="search-result" class="section-card hidden">
+            <h2 class="section-title">搜索结果</h2>
+            <ul class="track-list" id="search-list"></ul>
+        </section>
+
+        <!-- 单曲信息 -->
+        <section id="song-info-card" class="song-info-card hidden">
+            <div class="song-info-head">
+                <img id="song_cover" class="song-cover" src="" alt="专辑封面">
+                <div class="song-info-body">
+                    <h2 class="song-name" id="song_name"></h2>
+                    <div class="song-meta-list">
+                        <span class="meta-chip"><span class="chip-label">歌手</span><span id="artist_names"></span></span>
+                        <span class="meta-chip"><span class="chip-label">专辑</span><span id="song_alname"></span></span>
+                        <span class="meta-chip"><span class="chip-label">音质</span><span id="song_level"></span></span>
+                        <span class="meta-chip"><span class="chip-label">大小</span><span id="song_size"></span></span>
+                    </div>
+                    <div class="song-actions">
+                        <button id="show-big-pic" type="button" class="btn-outline">🖼️ 显示大图</button>
+                        <button id="song-download-btn" type="button" class="btn-nm">⬇️ 下载到本地（含歌词/封面）</button>
+                    </div>
+                </div>
+            </div>
+            <div class="lyric-section">
+                <div class="lyric-label">🎤 歌词</div>
+                <div class="lyric-box" id="lyric">暂无歌词</div>
+            </div>
+            <div class="player-section">
+                <div id="aplayer"></div>
+            </div>
+        </section>
+
+        <!-- 歌单结果 -->
+        <section id="playlist-result" class="section-card hidden">
+            <div class="media-head">
+                <img id="playlist-cover" class="media-cover" src="" alt="歌单封面">
+                <div style="flex:1;min-width:0;">
+                    <h2 class="media-title" id="playlist-name"></h2>
+                    <div class="media-sub" id="playlist-creator"></div>
+                    <div class="media-desc" id="playlist-desc"></div>
+                    <div class="media-count" id="playlist-count"></div>
+                </div>
+            </div>
+            <ul class="track-list" id="playlist-tracks"></ul>
+        </section>
+
+        <!-- 专辑结果 -->
+        <section id="album-result" class="section-card hidden">
+            <div class="media-head">
+                <img id="album-cover" class="media-cover" src="" alt="专辑封面">
+                <div style="flex:1;min-width:0;">
+                    <h2 class="media-title" id="album-name"></h2>
+                    <div class="media-sub" id="album-artist"></div>
+                    <div class="media-desc" id="album-desc"></div>
+                    <div class="media-count" id="album-count"></div>
+                </div>
+            </div>
+            <ul class="track-list" id="album-tracks"></ul>
+        </section>
+
+    </main>
+
+    <!-- ======== 页脚 ======== -->
+    <footer class="site-footer">
+        网易云音乐工具箱 © 2026 · Powered by Vevolat ·
+        <a href="https://github.com/Vevolat/Music_url" target="_blank" rel="noopener">GitHub</a>
+    </footer>
+
+    <!-- ======== 大图弹窗 ======== -->
+    <div class="modal fade" id="bigPicModal" tabindex="-1" aria-labelledby="bigPicModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bigPicModalLabel">大图预览</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="big-pic-img" class="big-pic-img" src="" alt="大图">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== 第三方库 ======== -->
+    <script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/aplayer/1.10.1/APlayer.min.js"></script>
+    <script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <!-- 业务脚本 -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
