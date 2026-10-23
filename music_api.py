@@ -9,6 +9,7 @@
 - 二维码登录
 """
 
+import base64
 import json
 import os
 import urllib.parse
@@ -51,6 +52,9 @@ class APIConstants:
     ALBUM_DETAIL_API = 'https://music.163.com/api/v1/album/'
     QR_UNIKEY_API = 'https://interface3.music.163.com/eapi/login/qrcode/unikey'
     QR_LOGIN_API = 'https://interface3.music.163.com/eapi/login/qrcode/client/login'
+    ACCOUNT_PROFILE_API = 'https://music.163.com/api/nuser/account/get'
+    DAILY_RECOMMEND_API = 'https://music.163.com/weapi/v1/discovery/recommend/songs'
+    USER_PLAYLIST_API = 'https://music.163.com/api/user/playlist'
     
     # 默认配置
     DEFAULT_CONFIG = {
@@ -148,6 +152,36 @@ class HTTPClient:
 class APIException(Exception):
     """API异常类"""
     pass
+
+
+class WeapiCrypto:
+    """weapi 参数加密（用于需要登录态的 web 接口，如每日推荐）
+
+    实测说明：随机密钥 + RSA 方案会被服务端拒绝（返回 200 空响应体），
+    固定密钥对（社区通用方案）可正常工作，故采用固定密钥。
+    """
+
+    PRESET_KEY = b"0CoJUm6Qyw8W8jud"
+    IV = b"0102030405060708"
+    SECRET_KEY = b"TA3YiYCfY2dDJQgg"
+    ENC_SEC_KEY = (
+        "84ca47bca10bad09a6b04c5c927ef077d9b9f1e37098aa3eac6ea70eb59df0aa28b691b7e75e4f1f9831754919ea784c8f74fbfadf2898b0be17849fd656060162857830e241aba44991601f137624094c114ea8d17bce815b0cd4e5b8e2fbaba978c6d1d14dc3d1faf852bdd28818031ccdaaa13a6018e1024e2aae98844210"
+    )
+
+    @classmethod
+    def _aes_encrypt(cls, text: str, key: bytes) -> str:
+        padder = padding.PKCS7(algorithms.AES(key).block_size).padder()
+        data = padder.update(text.encode("utf-8")) + padder.finalize()
+        cipher = Cipher(algorithms.AES(key), modes.CBC(cls.IV))
+        encryptor = cipher.encryptor()
+        return base64.b64encode(encryptor.update(data) + encryptor.finalize()).decode()
+
+    @classmethod
+    def encrypt(cls, payload: Dict[str, Any]) -> Tuple[str, str]:
+        """返回 (params, encSecKey) 表单字段（加密文本使用紧凑 JSON，等同 JSON.stringify）"""
+        text = json.dumps(payload, separators=(",", ":"))
+        params = cls._aes_encrypt(cls._aes_encrypt(text, cls.PRESET_KEY), cls.SECRET_KEY)
+        return params, cls.ENC_SEC_KEY
 
 
 class NeteaseAPI:
@@ -654,6 +688,106 @@ def get_pic_url(pic_id: Optional[int], size: int = 300) -> str:
     """获取图片URL（向后兼容）"""
     api = NeteaseAPI()
     return api.get_pic_url(pic_id, size)
+
+
+# ============ 网易账号能力（依赖 cookie.txt 中的 MUSIC_U 登录态） ============
+
+_ACCOUNT_HEADERS = {
+    'User-Agent': APIConstants.USER_AGENT,
+    'Referer': APIConstants.REFERER,
+}
+
+
+def _map_web_song(item: Dict[str, Any]) -> Dict[str, Any]:
+    """把 web 接口的歌曲对象统一映射为前端列表格式
+
+    兼容两种结构：新版字段 ar/al（歌单详情等），旧版字段 artists/album（每日推荐等）。
+    """
+    artists = item.get('ar') or item.get('artists') or []
+    album = item.get('al') or item.get('album') or {}
+    pic = album.get('picUrl') or ''
+    if not pic and album.get('pic'):
+        pic = get_pic_url(album.get('pic'))
+    return {
+        'id': item.get('id'),
+        'name': item.get('name', ''),
+        'artists': '/'.join(a.get('name', '') for a in artists),
+        'album': album.get('name', ''),
+        'picUrl': pic,
+    }
+
+
+def account_profile(cookies: Dict[str, str]) -> Dict[str, Any]:
+    """获取 cookie 对应的网易云账号资料（头像 / 昵称 / userId）
+
+    未登录或 Cookie 失效时返回 {'login': False}。
+    """
+    response = requests.post(
+        APIConstants.ACCOUNT_PROFILE_API,
+        headers=_ACCOUNT_HEADERS, cookies=cookies, timeout=30,
+    )
+    response.raise_for_status()
+    result = response.json()
+    if result.get('code') != 200:
+        raise APIException(f"获取账号资料失败: {result.get('message', '未知错误')}")
+    profile = result.get('profile') or {}
+    if not profile:
+        return {'login': False}
+    return {
+        'login': True,
+        'userId': profile.get('userId'),
+        'nickname': profile.get('nickname', ''),
+        'avatarUrl': profile.get('avatarUrl', ''),
+        'signature': profile.get('signature', ''),
+    }
+
+
+def daily_recommend_songs(cookies: Dict[str, str], limit: int = 30) -> List[Dict[str, Any]]:
+    """获取每日推荐歌曲（需要 MUSIC_U 登录态，走 weapi discovery 接口）"""
+    payload = {'limit': min(max(int(limit), 1), 100), 'total': True}
+    params, enc_sec_key = WeapiCrypto.encrypt(payload)
+    response = requests.post(
+        APIConstants.DAILY_RECOMMEND_API,
+        data={'params': params, 'encSecKey': enc_sec_key},
+        headers=_ACCOUNT_HEADERS, cookies=cookies, timeout=30,
+    )
+    response.raise_for_status()
+    if not response.text.strip():
+        raise APIException("每日推荐响应为空，请检查 Cookie 是否有效")
+    result = response.json()
+    code = result.get('code')
+    if code == 301:
+        raise APIException("每日推荐需要网易云登录 Cookie（MUSIC_U）")
+    if code != 200:
+        raise APIException(f"获取每日推荐失败: {result.get('message', 'code ' + str(code))}")
+    data = result.get('data') or {}
+    songs = data.get('dailySongs') or result.get('dailySongs') or []
+    return [_map_web_song(s) for s in songs]
+
+
+def like_list_songs(cookies: Dict[str, str], uid: int, limit: int = 300) -> List[Dict[str, Any]]:
+    """获取"我喜欢的音乐"歌曲列表
+
+    likelist 直连接口已下线（实测 404），改为通过用户第一个个人歌单
+    （"xx喜欢的音乐"）走歌单详情接口获取曲目。
+    """
+    response = requests.get(
+        APIConstants.USER_PLAYLIST_API,
+        params={'uid': uid, 'limit': 1, 'offset': 0},
+        headers=_ACCOUNT_HEADERS, cookies=cookies, timeout=30,
+    )
+    response.raise_for_status()
+    result = response.json()
+    if result.get('code') != 200:
+        raise APIException(f"获取用户歌单失败: {result.get('message', '未知错误')}")
+    playlists = result.get('playlist') or []
+    if not playlists:
+        raise APIException("未找到用户的个人歌单")
+    liked_playlist_id = playlists[0].get('id')
+    if not liked_playlist_id:
+        raise APIException("用户歌单缺少 ID")
+    detail = playlist_detail(liked_playlist_id, cookies)
+    return detail.get('tracks', [])[:max(min(int(limit), 1000), 1)]
 
 
 def qr_login() -> Optional[str]:

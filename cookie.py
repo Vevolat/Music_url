@@ -45,11 +45,11 @@ def ensure_cookie_source(input_filename: str = INPUT_FILENAME) -> None:
     """检测 cookie.1.txt 是否存在，不存在则用默认 Cookie 创建"""
     path = Path(input_filename)
     if path.exists():
-        print(f"✓ 检测到 '{input_filename}'，使用现有文件。")
+        print(f" 检测到 '{input_filename}'，使用现有文件。")
         return
     print(f"未找到 '{input_filename}'，自动创建并写入默认 Cookie...")
     path.write_text(DEFAULT_COOKIE.strip() + "\n", encoding="utf-8")
-    print(f"✓ 已创建 '{input_filename}'。")
+    print(f" 已创建 '{input_filename}'。")
 
 
 def extract_and_update_cookie():
@@ -81,20 +81,20 @@ def extract_and_update_cookie():
             with open(output_filename, "w", encoding="utf-8") as f:
                 f.write(new_cookie_content)
 
-            print(f"✓ 成功！已将提取的内容写入 '{output_filename}'。")
+            print(f" 成功！已将提取的内容写入 '{output_filename}'。")
             print("-" * 30)
             print(new_cookie_content)
             print("-" * 30)
         else:
-            print(f"✗ 错误：未在 '{input_filename}' 中找到 'MUSIC_U' 字段。")
+            print(f" 错误：未在 '{input_filename}' 中找到 'MUSIC_U' 字段。")
             print("提示：内置默认 Cookie 不含 MUSIC_U（账号登录凭证）。")
             print("请登录网易云音乐网页版 → F12 开发者工具 → Network 标签页，")
             print("复制请求头中的完整 Cookie 覆盖到该文件后，重新运行本脚本。")
 
     except FileNotFoundError:
-        print(f"✗ 错误：找不到文件 '{input_filename}'，请确保它与脚本在同一目录下。")
+        print(f" 错误：找不到文件 '{input_filename}'，请确保它与脚本在同一目录下。")
     except Exception as e:
-        print(f"✗ 发生未知错误：{e}")
+        print(f" 发生未知错误：{e}")
 
 
 if __name__ == "__main__":

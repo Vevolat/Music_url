@@ -4,6 +4,10 @@ cookie.txt
 cookie.1.txt
 *.cookie
 
+# 运行时数据目录：网易云 Cookie（cookie.json）、站点账号库（users.db）、
+# 服务端密钥（secret_key）、下载缓存等，全部禁止入库
+data/
+
 # ===== 运行时数据 =====
 downloads/
 music_api.log

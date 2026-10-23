@@ -3,57 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网易云音乐工具箱</title>
-    <link href="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/aplayer/1.10.1/APlayer.min.css">
+    <title>云音盒子 · 网易云音乐工具箱</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-    <!-- ======== 顶部 Hero ======== -->
-    <header class="hero">
-        <div class="hero-content">
-            <span class="hero-icon">🎵</span>
-            <h1>网易云音乐工具箱</h1>
-            <p class="hero-sub">搜索 · 解析 · 下载，一站搞定。下载文件自动写入歌词、封面与完整元数据。</p>
-            <span class="hero-badge">无损 · Hi-Res · 杜比全景声</span>
+    <!-- 背景装饰 -->
+    <div class="bg-decor" aria-hidden="true">
+        <span class="blob blob-1"></span>
+        <span class="blob blob-2"></span>
+        <span class="blob blob-3"></span>
+    </div>
+
+    <!-- ======== 顶栏 ======== -->
+    <header class="topbar">
+        <div class="brand">
+            <img class="brand-logo" src="{{ url_for('static', filename='favicon-256.png') }}" alt="云音盒子">
+            <div class="brand-text">
+                <h1>云音盒子</h1>
+                <p>搜索 · 解析 · 下载 · 在线播放</p>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="appmode-switch" role="tablist" aria-label="应用模式">
+                <button type="button" class="appmode-btn active" data-app="player">听音乐</button>
+                <button type="button" class="appmode-btn" data-app="download">下音乐</button>
+            </div>
+            <span class="hq-badge">
+                <svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.2L21 9l-5 4.4L17.5 21 12 17.3 6.5 21 8 13.4 3 9l6.6-.8z"/></svg>
+                无损 / Hi-Res / 杜比
+            </span>
+            <button type="button" id="ncm-btn" class="user-btn" title="网易云账号">
+                <img id="ncm-top-avatar" class="ncm-top-avatar hidden" src="" alt="">
+                <svg id="ncm-top-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+                <span id="ncm-btn-text">网易云登录</span>
+            </button>
         </div>
     </header>
 
     <!-- ======== 主内容 ======== -->
-    <main class="page-wrap">
+    <main class="page">
 
-        <!-- 主操作卡片 -->
-        <div class="main-card" id="main-form">
-            <!-- 模式切换 Tabs -->
-            <nav class="mode-tabs" aria-label="功能切换">
-                <button type="button" class="mode-tab" data-mode="search">🔍 歌曲搜索</button>
-                <button type="button" class="mode-tab" data-mode="parse">🎧 单曲解析</button>
-                <button type="button" class="mode-tab" data-mode="playlist">📋 歌单解析</button>
-                <button type="button" class="mode-tab" data-mode="album">💿 专辑解析</button>
-                <button type="button" class="mode-tab" data-mode="download">⬇️ 音乐下载</button>
-            </nav>
+        <!-- 模式切换 -->
+        <nav class="mode-tabs" aria-label="功能切换">
+            <span id="tabs-indicator" class="tabs-indicator" aria-hidden="true"></span>
+            <button type="button" class="mode-tab" data-mode="search" data-scope="player">
+                <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>首页
+            </button>
+            <button type="button" class="mode-tab" data-mode="player" data-scope="player">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></svg>播放器
+            </button>
+            <button type="button" class="mode-tab" data-mode="favorites" data-scope="player">
+                <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.6 2.4 5 5.8 5c2 0 3.4 1 4.2 2.4h4C14.8 6 16.2 5 18.2 5c3.4 0 5.2 3.6 3.8 6.7-2.5 4.6-10 9.3-10 9.3z" transform="scale(0.92) translate(1,0.5)"/></svg>我的收藏
+            </button>
+            <button type="button" class="mode-tab" data-mode="search" data-scope="download">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>歌曲搜索
+            </button>
+            <button type="button" class="mode-tab" data-mode="parse" data-scope="download">
+                <svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>单曲解析
+            </button>
+            <button type="button" class="mode-tab" data-mode="playlist" data-scope="both">
+                <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>歌单解析
+            </button>
+            <button type="button" class="mode-tab" data-mode="album" data-scope="both">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.5"/></svg>专辑解析
+            </button>
+            <button type="button" class="mode-tab" data-mode="download" data-scope="download">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>音乐下载
+            </button>
+        </nav>
 
-            <!-- 歌曲搜索 -->
-            <div id="search-area">
-                <div class="field-group">
-                    <label class="form-label" for="search_keywords">搜索关键词</label>
-                    <input type="text" id="search_keywords" class="nm-input" placeholder="输入歌曲名 / 歌手名进行搜索">
+        <!-- 歌曲搜索 / 首页 -->
+        <section id="panel-search" class="panel">
+            <!-- 首页卡片：每日推荐 / 我喜欢的音乐 -->
+            <div id="home-login-hint" class="card home-login-hint">
+                <p>登录网易云账号后，这里会展示你的每日推荐与我喜欢的音乐。</p>
+            </div>
+            <div id="home-sections" class="hidden">
+                <div class="home-sec">
+                    <div class="home-sec-head">
+                        <h2 class="home-sec-title">每日推荐</h2>
+                        <span id="daily-count" class="queue-count"></span>
+                    </div>
+                    <div class="song-grid" id="daily-grid"></div>
                 </div>
-                <div class="field-group">
-                    <label class="form-label" for="search_limit">返回数量</label>
-                    <input type="number" id="search_limit" class="nm-input" value="10" min="1" max="50">
+                <div class="home-sec">
+                    <div class="home-sec-head">
+                        <h2 class="home-sec-title">我喜欢的音乐</h2>
+                        <span id="like-count" class="queue-count"></span>
+                    </div>
+                    <div class="song-grid" id="like-grid"></div>
                 </div>
-                <button type="button" id="search-btn" class="btn-nm btn-block">搜索</button>
             </div>
 
-            <!-- 单曲解析 -->
-            <div id="parse-area" class="hidden">
-                <div class="field-group">
-                    <label class="form-label" for="song_ids">歌曲 ID 或链接</label>
-                    <input type="text" id="song_ids" class="nm-input" placeholder="如 185668 或 https://music.163.com/song?id=185668">
+            <div class="card">
+                <div class="card-head">
+                    <h2 class="card-title">歌曲搜索</h2>
+                    <p class="card-sub">按歌名 / 歌手搜索，支持一键播放与下载</p>
                 </div>
-                <div class="field-group">
+                <div class="form-row">
+                    <label class="form-label" for="search_keywords">关键词</label>
+                    <input type="text" id="search_keywords" class="nm-input" placeholder="输入歌曲名 / 歌手名进行搜索" autocomplete="off">
+                </div>
+                <div class="form-row row-compact">
+                    <div class="field-grow">
+                        <label class="form-label" for="search_limit">返回数量（1-50）</label>
+                        <input type="number" id="search_limit" class="nm-input" value="10" min="1" max="50">
+                    </div>
+                </div>
+                <button type="button" id="search-btn" class="btn btn-primary btn-block">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <span class="btn-label">开始搜索</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 单曲解析 -->
+        <section id="panel-parse" class="panel hidden">
+            <div class="card">
+                <div class="card-head">
+                    <h2 class="card-title">单曲解析</h2>
+                    <p class="card-sub">支持歌曲 ID 或完整链接（含 163cn.tv 短链）</p>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="song_ids">歌曲 ID 或链接</label>
+                    <input type="text" id="song_ids" class="nm-input" placeholder="如 185668 或 https://music.163.com/song?id=185668" autocomplete="off">
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="level">音质选择</label>
                     <select id="level" class="nm-select">
                         <option value="standard">标准音质</option>
@@ -66,34 +143,69 @@
                         <option value="dolby">杜比全景声</option>
                     </select>
                 </div>
-                <button type="button" id="parse-btn" class="btn-nm btn-block">解析</button>
+                <button type="button" id="parse-btn" class="btn btn-primary btn-block">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <span class="btn-label">开始解析</span>
+                </button>
+                <!-- 解析等待动画 -->
+                <div id="parse-loading" class="parse-loading hidden">
+                    <div class="vinyl-loader">
+                        <span class="vl-disc"></span>
+                        <span class="vl-dot"></span>
+                    </div>
+                    <p>正在解析歌曲信息，请稍候…</p>
+                </div>
             </div>
+        </section>
 
-            <!-- 歌单解析 -->
-            <div id="playlist-area" class="hidden">
-                <div class="field-group">
+        <!-- 歌单解析 -->
+        <section id="panel-playlist" class="panel hidden">
+            <div class="card">
+                <div class="card-head">
+                    <h2 class="card-title">歌单解析</h2>
+                    <p class="card-sub">解析歌单全部曲目，支持一键入列播放</p>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="playlist_id">歌单 ID 或链接</label>
-                    <input type="text" id="playlist_id" class="nm-input" placeholder="如 123456 或 https://music.163.com/playlist?id=123456">
+                    <input type="text" id="playlist_id" class="nm-input" placeholder="如 123456 或 https://music.163.com/playlist?id=123456" autocomplete="off">
                 </div>
-                <button type="button" id="playlist-btn" class="btn-nm btn-block">解析歌单</button>
+                <button type="button" id="playlist-btn" class="btn btn-primary btn-block">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <span class="btn-label">解析歌单</span>
+                </button>
             </div>
+        </section>
 
-            <!-- 专辑解析 -->
-            <div id="album-area" class="hidden">
-                <div class="field-group">
+        <!-- 专辑解析 -->
+        <section id="panel-album" class="panel hidden">
+            <div class="card">
+                <div class="card-head">
+                    <h2 class="card-title">专辑解析</h2>
+                    <p class="card-sub">解析专辑全部曲目，支持一键入列播放</p>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="album_id">专辑 ID 或链接</label>
-                    <input type="text" id="album_id" class="nm-input" placeholder="如 123456 或 https://music.163.com/album?id=123456">
+                    <input type="text" id="album_id" class="nm-input" placeholder="如 123456 或 https://music.163.com/album?id=123456" autocomplete="off">
                 </div>
-                <button type="button" id="album-btn" class="btn-nm btn-block">解析专辑</button>
+                <button type="button" id="album-btn" class="btn btn-primary btn-block">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <span class="btn-label">解析专辑</span>
+                </button>
             </div>
+        </section>
 
-            <!-- 音乐下载 -->
-            <div id="download-area" class="hidden">
-                <div class="field-group">
-                    <label class="form-label" for="download_id">音乐 ID 或链接</label>
-                    <input type="text" id="download_id" class="nm-input" placeholder="如 185668 或 https://music.163.com/song?id=185668">
+        <!-- 音乐下载 -->
+        <section id="panel-download" class="panel hidden">
+            <div class="card">
+                <div class="card-head">
+                    <h2 class="card-title">音乐下载</h2>
+                    <p class="card-sub">自动写入歌词、封面与完整元数据</p>
                 </div>
-                <div class="field-group">
+                <div class="form-row">
+                    <label class="form-label" for="download_id">音乐 ID 或链接</label>
+                    <input type="text" id="download_id" class="nm-input" placeholder="如 185668 或 https://music.163.com/song?id=185668" autocomplete="off">
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="download_quality">下载音质</label>
                     <select id="download_quality" class="nm-select">
                         <option value="standard">标准音质</option>
@@ -106,71 +218,187 @@
                         <option value="dolby">杜比全景声</option>
                     </select>
                 </div>
-                <button type="button" id="download-btn" class="btn-nm btn-block">下载音乐</button>
-                <div id="download-progress" class="progress-wrap hidden">
-                    <div class="progress-bar-custom"></div>
-                    <div class="progress-text">正在下载并写入歌词/封面等元信息...</div>
+                <button type="button" id="download-btn" class="btn btn-primary btn-block">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <span class="btn-label">下载音乐</span>
+                </button>
+                <div id="download-progress" class="download-progress hidden">
+                    <div class="dp-bar"><span></span></div>
+                    <p>正在下载并写入歌词 / 封面等元信息…</p>
                 </div>
             </div>
-        </div>
+        </section>
 
+        <!-- ======== 播放器模式（Apple Music 式全屏布局） ======== -->
+        <section id="panel-player" class="panel hidden">
+            <div class="player-full">
+                <!-- 左列：封面 / 信息 / 收藏 / 进度 / 控制 -->
+                <div class="card pf-left">
+                    <div class="pf-cover-wrap">
+                        <img id="pl-cover" class="pf-cover" src="" alt="封面">
+                    </div>
+                    <div class="pf-head">
+                        <div class="pf-titles">
+                            <h2 id="pl-name">未在播放</h2>
+                            <p id="pl-artist">从任意列表点 ▶ 开始播放</p>
+                            <span id="pl-level" class="quality-chip hidden"></span>
+                        </div>
+                        <button type="button" id="pl-fav" class="fav-round" title="收藏当前歌曲">
+                            <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.6 2.4 5 5.8 5c2 0 3.4 1 4.2 2.4h4C14.8 6 16.2 5 18.2 5c3.4 0 5.2 3.6 3.8 6.7-2.5 4.6-10 9.3-10 9.3z"/></svg>
+                        </button>
+                    </div>
+                    <div class="seek-row">
+                        <span class="time" id="pl-cur">0:00</span>
+                        <input type="range" id="pl-seek" class="range" value="0" max="1000" min="0" step="1">
+                        <span class="time" id="pl-dur">0:00</span>
+                    </div>
+                    <div class="control-row">
+                        <button type="button" id="pl-loop" class="ctrl-btn ctrl-small loop-btn" title="播放模式">
+                            <svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+                            <span class="loop-one hidden">1</span>
+                        </button>
+                        <button type="button" id="pl-prev" class="ctrl-btn" title="上一首">
+                            <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 6v12l-9-6z"/></svg>
+                        </button>
+                        <button type="button" id="pl-play" class="ctrl-btn play-big" title="播放 / 暂停">
+                            <svg viewBox="0 0 24 24" class="ic-play"><path d="M8 5v14l11-7z"/></svg>
+                            <svg viewBox="0 0 24 24" class="ic-pause hidden"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                        </button>
+                        <button type="button" id="pl-next" class="ctrl-btn" title="下一首">
+                            <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 6v12l9-6z"/></svg>
+                        </button>
+                        <div class="volume-row">
+                            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16 8a5 5 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            <input type="range" id="pl-vol" class="range range-vol" value="100" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右列：大字平滑歌词 + 播放队列 -->
+                <div class="pf-right">
+                    <div class="card pf-lyrics-card">
+                        <div id="pl-lyrics" class="lyrics-scroll lyrics-full">
+                            <p class="lyric-hint">暂无歌词</p>
+                        </div>
+                    </div>
+                    <div class="card queue-card">
+                        <div class="queue-head">
+                            <h3 class="side-title">播放队列 <span id="pl-queue-count" class="queue-count"></span></h3>
+                            <button type="button" id="pl-clear" class="btn-ghost">清空</button>
+                        </div>
+                        <ul id="pl-queue" class="queue-list">
+                            <li class="empty-state">队列空空如也，去添加几首歌吧</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======== 我的收藏 ======== -->
+        <section id="panel-favorites" class="panel hidden">
+            <div id="fav-login-tip" class="card login-tip">
+                <p>登录后可同步你的歌曲收藏，收藏不会随浏览器丢失。</p>
+                <button type="button" id="fav-login-btn" class="btn btn-primary">立即登录 / 注册</button>
+            </div>
+            <div id="fav-content" class="result hidden">
+                <div class="result-head">
+                    <h2 class="result-title">我的收藏 <span id="fav-count" class="queue-count"></span></h2>
+                    <div class="result-head-actions">
+                        <button type="button" class="btn-ghost act-fav-refresh">刷新</button>
+                        <button type="button" class="btn-ghost act-play-all" data-from="fav-list">
+                            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>全部播放
+                        </button>
+                    </div>
+                </div>
+                <ul class="track-list" id="fav-list"></ul>
+            </div>
+        </section>
+
+        <!-- ======== 结果区 ======== -->
         <!-- 搜索结果 -->
-        <section id="search-result" class="section-card hidden">
-            <h2 class="section-title">搜索结果</h2>
+        <section id="search-result" class="result hidden">
+            <div class="result-head">
+                <h2 class="result-title">搜索结果</h2>
+                <button type="button" class="btn-ghost act-play-all" data-from="search-list">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>全部播放
+                </button>
+            </div>
             <ul class="track-list" id="search-list"></ul>
         </section>
 
         <!-- 单曲信息 -->
         <section id="song-info-card" class="song-info-card hidden">
-            <div class="song-info-head">
+            <div class="song-head">
                 <img id="song_cover" class="song-cover" src="" alt="专辑封面">
-                <div class="song-info-body">
+                <div class="song-body">
                     <h2 class="song-name" id="song_name"></h2>
-                    <div class="song-meta-list">
-                        <span class="meta-chip"><span class="chip-label">歌手</span><span id="artist_names"></span></span>
-                        <span class="meta-chip"><span class="chip-label">专辑</span><span id="song_alname"></span></span>
-                        <span class="meta-chip"><span class="chip-label">音质</span><span id="song_level"></span></span>
-                        <span class="meta-chip"><span class="chip-label">大小</span><span id="song_size"></span></span>
+                    <div class="song-meta">
+                        <span class="chip"><em>歌手</em><span id="artist_names"></span></span>
+                        <span class="chip"><em>专辑</em><span id="song_alname"></span></span>
+                        <span class="chip"><em>音质</em><span id="song_level"></span></span>
+                        <span class="chip"><em>大小</em><span id="song_size"></span></span>
                     </div>
                     <div class="song-actions">
-                        <button id="show-big-pic" type="button" class="btn-outline">🖼️ 显示大图</button>
-                        <button id="song-download-btn" type="button" class="btn-nm">⬇️ 下载到本地（含歌词/封面）</button>
+                        <button type="button" id="show-big-pic" class="btn btn-ghost">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-4.5-4.5L7 20"/></svg>大图
+                        </button>
+                        <button type="button" id="song-play-btn" class="btn btn-accent">
+                            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>加入播放
+                        </button>
+                        <button type="button" id="song-fav-btn" class="btn btn-fav" title="收藏">
+                            <svg viewBox="0 0 24 24" class="ic-heart"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.6 2.4 5 5.8 5c2 0 3.4 1 4.2 2.4h4C14.8 6 16.2 5 18.2 5c3.4 0 5.2 3.6 3.8 6.7-2.5 4.6-10 9.3-10 9.3z"/></svg>
+                            <span class="btn-label">收藏</span>
+                        </button>
+                        <button type="button" id="song-download-btn" class="btn btn-primary">
+                            <span class="spinner" aria-hidden="true"></span>
+                            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+                            <span class="btn-label">下载到本地</span>
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="lyric-section">
-                <div class="lyric-label">🎤 歌词</div>
+            <div class="lyric-wrap">
+                <h3 class="side-title">歌词</h3>
                 <div class="lyric-box" id="lyric">暂无歌词</div>
-            </div>
-            <div class="player-section">
-                <div id="aplayer"></div>
             </div>
         </section>
 
         <!-- 歌单结果 -->
-        <section id="playlist-result" class="section-card hidden">
+        <section id="playlist-result" class="result hidden">
             <div class="media-head">
                 <img id="playlist-cover" class="media-cover" src="" alt="歌单封面">
-                <div style="flex:1;min-width:0;">
+                <div class="media-info">
                     <h2 class="media-title" id="playlist-name"></h2>
                     <div class="media-sub" id="playlist-creator"></div>
                     <div class="media-desc" id="playlist-desc"></div>
                     <div class="media-count" id="playlist-count"></div>
                 </div>
             </div>
+            <div class="result-head">
+                <h2 class="result-title">曲目列表</h2>
+                <button type="button" class="btn-ghost act-play-all" data-from="playlist-tracks">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>全部播放
+                </button>
+            </div>
             <ul class="track-list" id="playlist-tracks"></ul>
         </section>
 
         <!-- 专辑结果 -->
-        <section id="album-result" class="section-card hidden">
+        <section id="album-result" class="result hidden">
             <div class="media-head">
                 <img id="album-cover" class="media-cover" src="" alt="专辑封面">
-                <div style="flex:1;min-width:0;">
+                <div class="media-info">
                     <h2 class="media-title" id="album-name"></h2>
                     <div class="media-sub" id="album-artist"></div>
                     <div class="media-desc" id="album-desc"></div>
                     <div class="media-count" id="album-count"></div>
                 </div>
+            </div>
+            <div class="result-head">
+                <h2 class="result-title">曲目列表</h2>
+                <button type="button" class="btn-ghost act-play-all" data-from="album-tracks">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>全部播放
+                </button>
             </div>
             <ul class="track-list" id="album-tracks"></ul>
         </section>
@@ -179,29 +407,193 @@
 
     <!-- ======== 页脚 ======== -->
     <footer class="site-footer">
-        网易云音乐工具箱 © 2026 · Powered by Vevolat ·
+        云音盒子 © 2026 · Powered by Vevolat ·
         <a href="https://github.com/Vevolat/Music_url" target="_blank" rel="noopener">GitHub</a>
     </footer>
 
-    <!-- ======== 大图弹窗 ======== -->
-    <div class="modal fade" id="bigPicModal" tabindex="-1" aria-labelledby="bigPicModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bigPicModalLabel">大图预览</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+    <!-- ======== 底部常驻迷你播放条 ======== -->
+    <div id="player-bar" class="player-bar hidden">
+        <button type="button" id="pb-cover-btn" class="pb-cover-btn" title="全屏播放">
+            <img id="pb-cover" src="" alt="封面">
+        </button>
+        <div class="pb-meta">
+            <span id="pb-name">未在播放</span>
+            <span id="pb-artist"></span>
+        </div>
+        <button type="button" id="pb-prev" class="pb-btn" title="上一首">
+            <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 6v12l-9-6z"/></svg>
+        </button>
+        <button type="button" id="pb-play" class="pb-btn pb-play" title="播放 / 暂停">
+            <svg viewBox="0 0 24 24" class="ic-play"><path d="M8 5v14l11-7z"/></svg>
+            <svg viewBox="0 0 24 24" class="ic-pause hidden"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+        <button type="button" id="pb-next" class="pb-btn" title="下一首">
+            <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 6v12l9-6z"/></svg>
+        </button>
+        <span id="pb-lyric" class="pb-lyric" title="点击展开播放器"></span>
+        <div class="pb-seek">
+            <input type="range" id="pb-seek" class="range" value="0" max="1000" min="0" step="1">
+            <span class="pb-time"><span id="pb-cur">0:00</span> / <span id="pb-dur">0:00</span></span>
+        </div>
+    </div>
+
+    <!-- ======== 全屏播放界面（点击播放栏封面进入） ======== -->
+    <div id="fs-player" class="fs-player hidden">
+        <img id="fs-bg" class="fs-bg" src="" alt="" aria-hidden="true">
+        <div class="fs-shade"></div>
+        <button type="button" id="fs-close" class="fs-close" aria-label="退出全屏">
+            <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </button>
+        <!-- 歌词视图切换（右下角） -->
+        <button type="button" id="fs-lyric-toggle" class="fs-lyric-toggle" aria-pressed="false" title="歌词">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16M4 10h11M4 15h15M4 20h8"/></svg>
+            <span class="fst-label">歌词</span>
+        </button>
+
+        <!-- 视图一：居中封面 + 控制 -->
+        <div class="fs-view fs-view-center">
+            <div class="fs-body">
+                <img id="fs-cover" class="fs-cover" src="" alt="封面">
+                <h2 id="fs-name">未在播放</h2>
+                <p id="fs-artist"></p>
+                <p id="fs-lyric" class="fs-lyric"></p>
+                <div class="seek-row fs-seek-row">
+                    <span class="time" id="fs-cur">0:00</span>
+                    <input type="range" id="fs-seek" class="range" value="0" max="1000" min="0" step="1">
+                    <span class="time" id="fs-dur">0:00</span>
                 </div>
-                <div class="modal-body text-center">
-                    <img id="big-pic-img" class="big-pic-img" src="" alt="大图">
+                <div class="control-row fs-controls">
+                    <button type="button" id="fs-loop" class="ctrl-btn ctrl-small loop-btn" title="播放模式"></button>
+                    <button type="button" id="fs-prev" class="ctrl-btn" title="上一首">
+                        <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 6v12l-9-6z"/></svg>
+                    </button>
+                    <button type="button" id="fs-play" class="ctrl-btn play-big" title="播放 / 暂停">
+                        <svg viewBox="0 0 24 24" class="ic-play"><path d="M8 5v14l11-7z"/></svg>
+                        <svg viewBox="0 0 24 24" class="ic-pause hidden"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                    </button>
+                    <button type="button" id="fs-next" class="ctrl-btn" title="下一首">
+                        <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 6v12l9-6z"/></svg>
+                    </button>
+                    <div class="volume-row">
+                        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16 8a5 5 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <input type="range" id="fs-vol" class="range range-vol" value="100" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 视图二：左侧封面 / 进度 / 控制，右侧全高歌词 -->
+        <div class="fs-view fs-view-lyrics">
+            <div class="fsl-left">
+                <img id="fs2-cover" class="fsl-cover" src="" alt="封面">
+                <div class="fsl-meta">
+                    <div class="fsl-title-row">
+                        <h2 id="fs2-name">未在播放</h2>
+                        <button type="button" id="fs2-fav" class="fav-round" title="收藏当前歌曲">
+                            <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.6 2.4 5 5.8 5c2 0 3.4 1 4.2 2.4h4C14.8 6 16.2 5 18.2 5c3.4 0 5.2 3.6 3.8 6.7-2.5 4.6-10 9.3-10 9.3z"/></svg>
+                        </button>
+                    </div>
+                    <p id="fs2-artist"></p>
+                    <div class="seek-row fsl-seek-row">
+                        <span class="time" id="fs2-cur">0:00</span>
+                        <input type="range" id="fs2-seek" class="range" value="0" max="1000" min="0" step="1">
+                        <span class="time" id="fs2-dur">0:00</span>
+                    </div>
+                    <div class="control-row fsl-controls">
+                        <button type="button" id="fs2-loop" class="ctrl-btn ctrl-small loop-btn" title="播放模式"></button>
+                        <button type="button" id="fs2-prev" class="ctrl-btn" title="上一首">
+                            <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 6v12l-9-6z"/></svg>
+                        </button>
+                        <button type="button" id="fs2-play" class="ctrl-btn play-big" title="播放 / 暂停">
+                            <svg viewBox="0 0 24 24" class="ic-play"><path d="M8 5v14l11-7z"/></svg>
+                            <svg viewBox="0 0 24 24" class="ic-pause hidden"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                        </button>
+                        <button type="button" id="fs2-next" class="ctrl-btn" title="下一首">
+                            <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 6v12l9-6z"/></svg>
+                        </button>
+                        <div class="volume-row">
+                            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16 8a5 5 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            <input type="range" id="fs2-vol" class="range range-vol" value="100" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fsl-right">
+                <div id="fs-lyrics" class="lyrics-scroll fs-lyrics-box">
+                    <p class="lyric-hint">暂无歌词</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ======== 第三方库 ======== -->
-    <script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/aplayer/1.10.1/APlayer.min.js"></script>
-    <script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <!-- ======== 网易云 Cookie 登录弹窗 ======== -->
+    <div id="ncm-modal" class="lightbox hidden">
+        <div class="auth-card card">
+            <button type="button" id="ncm-close" class="auth-close" aria-label="关闭">&times;</button>
+            <!-- 未登录：输入 Cookie -->
+            <div id="ncm-login-view">
+                <h2 class="auth-title">网易云账号登录</h2>
+                <p class="auth-hint" style="margin-top:-6px">粘贴完整 Cookie（含 MUSIC_U）或仅 MUSIC_U 值；登录后头像、昵称、每日推荐、我喜欢的音乐与高音质全部生效，刷新与重启均不丢失。</p>
+                <div class="form-row">
+                    <label class="form-label" for="ncm-cookie-input">Cookie 内容</label>
+                    <textarea id="ncm-cookie-input" class="nm-input ncm-textarea" rows="4" placeholder="MUSIC_U=xxxxxxxx；或完整 Cookie 串（NMTID=xxx; MUSIC_U=xxx; ...）" autocomplete="off" spellcheck="false"></textarea>
+                </div>
+                <p id="ncm-msg" class="auth-msg"></p>
+                <button type="button" id="ncm-login-btn" class="btn btn-primary btn-block">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <span class="btn-label">登录</span>
+                </button>
+            </div>
+            <!-- 已登录：头像 + 昵称 + 退出 -->
+            <div id="ncm-logged-view" class="hidden">
+                <div class="ncm-profile">
+                    <img id="ncm-avatar" class="ncm-avatar" src="" alt="头像">
+                    <div class="ncm-info">
+                        <h2 id="ncm-nickname"></h2>
+                        <p id="ncm-sign"></p>
+                    </div>
+                </div>
+                <button type="button" id="ncm-logout-btn" class="btn btn-ghost btn-block">退出登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== 登录 / 注册弹窗（站点账号，收藏用） ======== -->
+    <div id="auth-modal" class="lightbox hidden">
+        <div class="auth-card card">
+            <button type="button" id="auth-close" class="auth-close" aria-label="关闭">&times;</button>
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" data-auth-tab="login">登录</button>
+                <button type="button" class="auth-tab" data-auth-tab="register">注册</button>
+            </div>
+            <form id="auth-form" autocomplete="off">
+                <div class="form-row">
+                    <label class="form-label" for="auth-username">用户名</label>
+                    <input type="text" id="auth-username" class="nm-input" maxlength="20" placeholder="2-20 位字母 / 数字 / 下划线 / 中文">
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="auth-password">密码</label>
+                    <input type="password" id="auth-password" class="nm-input" maxlength="64" placeholder="6-64 位">
+                </div>
+                <p id="auth-msg" class="auth-msg"></p>
+                <button type="submit" id="auth-submit" class="btn btn-primary btn-block">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <span class="btn-label">登录</span>
+                </button>
+            </form>
+            <p class="auth-hint">连续 5 次登录失败将触发阶梯封禁：5 分钟起步，逐次加倍</p>
+        </div>
+    </div>
+
+    <!-- ======== 大图灯箱 ======== -->
+    <div id="lightbox" class="lightbox hidden">
+        <button type="button" id="lightbox-close" aria-label="关闭">×</button>
+        <img id="lightbox-img" src="" alt="大图预览">
+    </div>
+
+    <!-- ======== 全局提示 ======== -->
+    <div id="toast" class="toast" role="status"></div>
+
     <!-- 业务脚本 -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

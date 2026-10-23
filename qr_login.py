@@ -169,7 +169,7 @@ class QRLoginClient:
                             if not cookie:
                                 return False, "登录成功但未获取到 Cookie"
                             if self.save_cookie(cookie):
-                                print("\n✅ 登录成功！Cookie 已保存")
+                                print("\n 登录成功！Cookie 已保存")
                                 return True, None
                             return False, "登录成功但 Cookie 保存失败"
 
@@ -178,11 +178,11 @@ class QRLoginClient:
                         elif status == 'scanned':
                             print("二维码已扫描，请在手机上确认登录")
                         elif status == 'expired':
-                            print("\n❌ 二维码已过期，请重新尝试")
+                            print("\n 二维码已过期，请重新尝试")
                             return False, "二维码已过期"
                         elif status == 'error':
                             msg = status_result.get('message', '未知错误')
-                            print(f"\n❌ 登录失败: {msg}")
+                            print(f"\n 登录失败: {msg}")
                             return False, f"登录失败: {msg}"
                     else:
                         self.logger.warning(f"检查登录状态失败: {status_result.get('message', '未知错误')}")
@@ -198,7 +198,7 @@ class QRLoginClient:
                     time.sleep(5)
                     attempt += 1
 
-            print("\n❌ 登录超时，请重新尝试")
+            print("\n 登录超时，请重新尝试")
             return False, "登录超时"
 
         except APIException as e:
